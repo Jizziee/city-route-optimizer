@@ -101,7 +101,7 @@ show_cities()
 # STEP 4: OPTIMISATION  (DIJKSTRA'S ALGORITHM)      # This function finds the SHORTEST path between two cities.
 # ============================================================
 # WHY IS THIS OPTIMISATION?
-#   Optimisation means finding the BEST solution from many possible options. Here we have hundreds of possible routesbetween two cities. Dijkstra finds the one with the MINIMUM total distance — that is optimisation.
+#   Optimisation means finding the BEST solution from many possible options. Here we have hundreds of possible routes between two cities. Dijkstra finds the one with the MINIMUM total distance — that is optimisation.
 #
 # HOW IT WORKS:
 #   1. Start at the source city with distance = 0
@@ -193,10 +193,143 @@ def dijkstra(start, end):
  
  
 # ============================================================
-# QUICK TEST - Make sure Dijkstra works correctly
+# STEP 5: GET CITY INPUT FROM USER
 # ============================================================
-print("\nTesting Dijkstra: London to Nairobi...")
-distance, route = dijkstra(0, 8)  # 0=London, 8=Nairobi
-print(f"Route   : {' → '.join(route)}")
-print(f"Distance: {distance:,.0f} km")
+# This function asks the user to type a city name or number.
+# It handles mistakes gracefully — if the user types something
+# wrong, it simply asks again instead of crashing.
+ 
+def get_city_input(prompt):
+    """
+    Asks the user to enter a city by name or number.
+ 
+    Parameters:
+        prompt : the question to show the user
+ 
+    Returns:
+        index of the chosen city
+    """
+    while True:
+        user_input = input(prompt).strip()
+ 
+        # Check if user typed a number (e.g. "0" for London)
+        if user_input.isdigit():
+            index = int(user_input)
+            if 0 <= index < len(cities):
+                return index
+            else:
+                print(f"  ⚠ Please enter a number between 0 and {len(cities)-1}")
+ 
+        # Check if user typed a city name (case insensitive)
+        # e.g. "london", "LONDON" and "London" all work
+        else:
+            matches = [i for i, c in enumerate(cities)
+                      if c.lower() == user_input.lower()]
+            if matches:
+                return matches[0]
+            else:
+                print(f"  ⚠ '{user_input}' not found. Try again or use a number.")
+ 
+# ============================================================
+# STEP 6: DISPLAY THE ROUTE RESULTS
+# ============================================================
+# This function prints the results in a clear, readable format.
+# It shows the route, total distance and each leg of the journey.
+ 
+def display_results(path, total_distance):
+    """
+    Displays the shortest path results to the user.
+ 
+    Parameters:
+        path           : list of city names on the route
+        total_distance : total distance in km
+    """
+    print("\n  " + "=" * 50)
+    print("  ✅ SHORTEST ROUTE FOUND")
+    print("  " + "-" * 50)
+    print(f"  From     : {path[0]}")
+    print(f"  To       : {path[-1]}")
+    print(f"  Route    : {' → '.join(path)}")
+    print(f"  Distance : {total_distance:,.0f} km")
+    print("  " + "-" * 50)
+ 
+    # Show leg by leg breakdown
+    # A "leg" is one direct flight between two cities
+    if len(path) > 2:
+        print("  LEG BY LEG BREAKDOWN:")
+        for i in range(len(path) - 1):
+            city_a = cities.index(path[i])
+            city_b = cities.index(path[i + 1])
+            leg_km = distance_matrix[city_a][city_b]
+            print(f"    {path[i]:<15} → {path[i+1]:<15} {leg_km:>6.0f} km")
+        print(f"    {'TOTAL DISTANCE':>33} {total_distance:>6.0f} km")
+    print("  " + "=" * 50)
+ 
+# ============================================================
+# STEP 7: MAIN PROGRAM — PUTTING IT ALL TOGETHER
+# ============================================================
+# This is where everything connects.
+# We show the cities, take user input, run Dijkstra,
+# and display the results. The user can search again
+# as many times as they want.
+ 
+def main():
+    print("\n" + "=" * 60)
+    print("   ✈  SMART CITY ROUTE OPTIMIZER")
+    print("   MFC 2026 | Mathematics for Computing")
+    print("=" * 60)
+    print("   Find the shortest flight route between any")
+    print("   two cities using Dijkstra's Algorithm.")
+    print("=" * 60)
+ 
+    # Keep running until user says no
+    while True:
+ 
+        # Show available cities
+        show_cities()
+ 
+        # Get start city from user
+        print()
+        start = get_city_input("  Enter START city (name or number): ")
+ 
+        # Get destination city from user
+        end = get_city_input("  Enter DESTINATION city (name or number): ")
+ 
+        # Check they didn't pick the same city twice
+        if start == end:
+            print(f"\n  ⚠ You are already in {cities[start]}! Pick a different destination.")
+            continue
+ 
+        # Run Dijkstra's algorithm to find shortest path
+        print(f"\n  Searching for shortest route from "
+              f"{cities[start]} to {cities[end]}...")
+ 
+        total_distance, path = dijkstra(start, end)
+ 
+        # Check if a route was found
+        if total_distance == np.inf or not path:
+            print(f"\n  ✗ No route found between {cities[start]} "
+                  f"and {cities[end]}.")
+            print("  These cities may not be connected in our network.")
+        else:
+            # Display the results
+            display_results(path, total_distance)
+ 
+        # Ask if user wants to search again
+        print()
+        again = input("  Search another route? (yes / no): ").strip().lower()
+        if again not in ['yes', 'y']:
+            print("\n  Thank you for using Smart City Route Optimizer!")
+            print("  " + "=" * 60)
+            break
+ 
+# ============================================================
+# RUN THE PROGRAM
+# ============================================================
+# This line means: only run main() if we run this file directly
+# It is a Python best practice for all programs
+ 
+if __name__ == "__main__":
+    main()
+ 
  
