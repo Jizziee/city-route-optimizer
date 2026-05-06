@@ -17,7 +17,7 @@ to connect through other cities. This program finds the optimal path for you.
 - A **0** means there is no direct flight — the program will find a connecting route
 - All distances are in **kilometres (km)**
 
-## Mathematics Used (MFC 2026)
+## Mathematical Concept Used:
 | Topic | How It's Used |
 |---|---|
 | Matrices | 10×10 distance matrix storing all direct flight connections |
