@@ -89,13 +89,6 @@ def show_cities():
         print(f"  [{i}] {city}")
     print("  " + "-" * 35)
  
-# ============================================================
-# QUICK TEST - Let's make sure everything works so far
-# ============================================================
-print("Cities loaded:", len(cities), "cities")
-print("Matrix shape :", distance_matrix.shape)
-print("Example: London to Paris =", distance_matrix[0][1], "km")
-show_cities()
 
 # ============================================================
 # STEP 4: OPTIMISATION  (DIJKSTRA'S ALGORITHM)      # This function finds the SHORTEST path between two cities.
@@ -245,7 +238,7 @@ def display_results(path, total_distance):
         total_distance : total distance in km
     """
     print("\n  " + "=" * 50)
-    print("  ✅ SHORTEST ROUTE FOUND")
+    print("   SHORTEST ROUTE FOUND")
     print("  " + "-" * 50)
     print(f"  From     : {path[0]}")
     print(f"  To       : {path[-1]}")
@@ -276,10 +269,8 @@ def display_results(path, total_distance):
 def main():
     print("\n" + "=" * 60)
     print("   ✈  SMART CITY ROUTE OPTIMIZER")
-    print("   MFC 2026 | Mathematics for Computing")
     print("=" * 60)
-    print("   Find the shortest flight route between any")
-    print("   two cities using Dijkstra's Algorithm.")
+    print("   Find the shortest flight route between any two cities")
     print("=" * 60)
  
     # Keep running until user says no
@@ -314,6 +305,7 @@ def main():
         else:
             # Display the results
             display_results(path, total_distance)
+            display_fuel_cost(total_distance)
  
         # Ask if user wants to search again
         print()
@@ -324,12 +316,93 @@ def main():
             break
  
 # ============================================================
-# RUN THE PROGRAM
+# STEP 8: FUEL COST ESTIMATOR (Probability - Week 8 & 9)
 # ============================================================
-# This line means: only run main() if we run this file directly
-# It is a Python best practice for all programs
+# REAL WORLD PROBLEM:
+#   Fuel prices are never fixed — they vary daily due to oil prices, seasons, and demand. So instead of one fixed price we use PROBABILITY to give a realistic cost RANGE.
+
+# MATHEMATICAL CONCEPT — Normal Distribution:
+#   In real life, most values cluster around an average (mean) with fewer values far away. This is called a Normal Distribution — the famous "bell curve" shape.
+
+#   For fuel costs:
+#   - We calculate the MEAN cost based on distance
+#   - We calculate the STANDARD DEVIATION (how much it varies)
+#   - We then use these to give a 90% probability price range
+#
+# FORMULA USED:
+#   mean     = distance × cost_per_km
+#   std_dev  = mean × variation_rate
+#   low  estimate = mean - (1.645 × std_dev)  ← 5th percentile
+#   high estimate = mean + (1.645 × std_dev)  ← 95th percentile
+#
+#   1.645 is the Z-score for a 90% confidence interval
+#   from the Standard Normal Distribution table (Week 8)
+#
+# This means: "We are 90% confident the fuel cost will fall
+#              between the low and high estimate"
+ 
+def estimate_fuel_cost(distance_km):
+    """
+    Estimates the fuel cost using Normal Distribution.
+ 
+    Parameters:
+        distance_km : total flight distance in kilometres
+ 
+    Returns:
+        mean_cost : average expected cost in USD
+        low_cost  : lower bound (5th percentile)
+        high_cost : upper bound (95th percentile)
+    """
+ 
+    # ---- Constants ----
+    COST_PER_KM   = 0.085   # Average fuel cost per km in USD
+    VARIATION     = 0.12    # Fuel prices vary by ~12% (standard deviation)
+    Z_SCORE_90    = 1.645   # Z-score for 90% confidence interval
+                            # From Normal Distribution table (Week 8)
+ 
+    # ---- Step 1: Calculate the MEAN (expected average cost) ----
+    # This is a simple linear relationship: cost = distance × rate
+    mean_cost = distance_km * COST_PER_KM
+ 
+    # ---- Step 2: Calculate STANDARD DEVIATION ----
+    # Standard deviation tells us how spread out the prices are
+    # A 12% variation means prices typically vary by 12% of the mean
+    std_dev = mean_cost * VARIATION
+ 
+    # ---- Step 3: Calculate the PROBABILITY RANGE ----
+    # Using the Normal Distribution formula:
+    # Lower bound = mean - (Z × std_dev) → 5th percentile
+    # Upper bound = mean + (Z × std_dev) → 95th percentile
+    # This gives us a 90% confidence interval
+    low_cost  = mean_cost - (Z_SCORE_90 * std_dev)
+    high_cost = mean_cost + (Z_SCORE_90 * std_dev)
+ 
+    return mean_cost, low_cost, high_cost
+ 
+ 
+def display_fuel_cost(distance_km):
+    """
+    Displays the fuel cost estimate with probability explanation.
+ 
+    Parameters:
+        distance_km : total flight distance in kilometres
+    """
+    mean_cost, low_cost, high_cost = estimate_fuel_cost(distance_km)
+ 
+    print("\n  FUEL COST ESTIMATE (Normal Distribution)")
+    print("  " + "-" * 50)
+    print(f"  Average expected cost : ${mean_cost:>8,.2f} USD")
+    print(f"  90% confidence range  : ${low_cost:>7,.2f} - ${high_cost:,.2f} USD")
+    print(f"  Cost per km           : $0.085 USD")
+    print(f"  Price variation       : ±12% (std deviation)")
+    print("  " + "-" * 50)
+    print("  📊 Interpretation:")
+    print(f"  There is a 90% probability that the fuel cost")
+    print(f"  for this {distance_km:,.0f} km journey will fall")
+    print(f"  between ${low_cost:,.2f} and ${high_cost:,.2f} USD.")
+    print("  (Based on Normal Distribution, Z-score = 1.645)")
+    print("  " + "-" * 50)
  
 if __name__ == "__main__":
     main()
- 
  
