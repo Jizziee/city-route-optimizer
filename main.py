@@ -306,6 +306,7 @@ def main():
             # Display the results
             display_results(path, total_distance)
             display_fuel_cost(total_distance)
+            display_travel_time(total_distance)
  
         # Ask if user wants to search again
         print()
@@ -396,11 +397,126 @@ def display_fuel_cost(distance_km):
     print(f"  Cost per km           : $0.085 USD")
     print(f"  Price variation       : ±12% (std deviation)")
     print("  " + "-" * 50)
-    print("  📊 Interpretation:")
+    print("   Interpretation:")
     print(f"  There is a 90% probability that the fuel cost")
     print(f"  for this {distance_km:,.0f} km journey will fall")
     print(f"  between ${low_cost:,.2f} and ${high_cost:,.2f} USD.")
     print("  (Based on Normal Distribution, Z-score = 1.645)")
+    print("  " + "-" * 50)
+
+# ============================================================
+# STEP 9: TRAVEL TIME ESTIMATOR (Linear Regression)
+# ============================================================
+# REAL WORLD PROBLEM:
+#   A passenger needs to know how long their journey will take.
+#   We use Linear Regression to predict travel time from distance.
+#
+# MATHEMATICAL CONCEPT — Linear Regression:
+#   Linear Regression finds the best straight line relationship
+#   between two variables. The formula is:
+#
+#       y = mx + c
+#
+#   Where:
+#     y = travel time (what we want to predict)
+#     x = distance in km (what we know)
+#     m = slope (how much time increases per km)
+#     c = intercept (base time e.g. boarding, taxiing)
+#
+#   We calculate m and c using the Linear Regression formula:
+#
+#       m = Σ((x - x_mean)(y - y_mean)) / Σ((x - x_mean)²)
+#       c = y_mean - m × x_mean
+#
+#   This finds the line that BEST fits our known flight data.
+#   NumPy vectors are used for all calculations.
+
+# Known flight data (distance km, time hours) — training data
+# These are real approximate flight times for reference
+FLIGHT_DATA = np.array([
+    [344,   1.5],   # London  → Paris
+    [878,   2.5],   # Paris   → Berlin
+    [1105,  2.8],   # Paris   → Rome
+    [1184,  2.9],   # Berlin  → Rome
+    [2065,  4.5],   # Rome    → Cairo
+    [2092,  4.2],   # London  → Casablanca
+    [2900,  6.0],   # Casablanca → Lagos
+    [3200,  6.5],   # Paris   → Cairo
+    [3626,  7.5],   # Cairo   → Nairobi
+    [3900,  8.0],   # Nairobi → Johannesburg
+    [3982,  8.2],   # Lagos   → Nairobi
+])
+
+def linear_regression(data):
+    """
+    Calculates slope (m) and intercept (c) for y = mx + c.
+
+    Parameters:
+        data : NumPy array with columns [distance, time]
+
+    Returns:
+        m : slope (hours per km)
+        c : intercept (base hours)
+    """
+    # Split data into x (distance) and y (time) vectors
+    x = data[:, 0]  # First column  — distances
+    y = data[:, 1]  # Second column — times
+
+    # Calculate means using NumPy
+    x_mean = np.mean(x)
+    y_mean = np.mean(y)
+
+    # Calculate slope m using Linear Regression formula
+    # m = Σ((x - x_mean)(y - y_mean)) / Σ((x - x_mean)²)
+    numerator   = np.sum((x - x_mean) * (y - y_mean))
+    denominator = np.sum((x - x_mean) ** 2)
+    m = numerator / denominator
+
+    # Calculate intercept c
+    # c = y_mean - m × x_mean
+    c = y_mean - m * x_mean
+
+    return m, c
+
+def estimate_travel_time(distance_km):
+    """
+    Predicts travel time using Linear Regression y = mx + c.
+
+    Parameters:
+        distance_km : total flight distance in kilometres
+
+    Returns:
+        hours : predicted travel time in hours
+    """
+    m, c = linear_regression(FLIGHT_DATA)
+
+    # Apply the Linear Regression formula: y = mx + c
+    hours = m * distance_km + c
+
+    return hours, m, c
+
+def display_travel_time(distance_km):
+    """
+    Displays the travel time prediction with explanation.
+
+    Parameters:
+        distance_km : total flight distance in kilometres
+    """
+    hours, m, c = estimate_travel_time(distance_km)
+    full_hours  = int(hours)
+    minutes     = int((hours - full_hours) * 60)
+
+    print("\n  TRAVEL TIME ESTIMATE (Linear Regression)")
+    print("  " + "-" * 50)
+    print(f"  Formula used    : y = mx + c")
+    print(f"  Slope (m)       : {m:.6f} hours per km")
+    print(f"  Intercept (c)   : {c:.4f} hours (boarding time)")
+    print(f"  Calculation     : {m:.6f} x {distance_km:,.0f} + {c:.4f}")
+    print(f"  Estimated time  : {full_hours}h {minutes}min")
+    print("  " + "-" * 50)
+    print(f"  A {distance_km:,.0f} km journey is predicted to take")
+    print(f"  approximately {full_hours} hours and {minutes} minutes.")
+    print(f"  (Using Linear Regression trained on real flight data)")
     print("  " + "-" * 50)
  
 if __name__ == "__main__":
