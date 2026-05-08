@@ -151,19 +151,11 @@ def get_city_input(prompt):
                 print(f"   '{user_input}' not found. Try again or use a number.")
  
 # ============================================================
-# STEP 6: DISPLAY THE ROUTE RESULTS
+# STEP 6: DISPLAY THE ROUTE RESULTS                            #This function prints the results by showing the route, total distance and each leg of the journey.
 # ============================================================
-# This function prints the results in a clear, readable format.
-# It shows the route, total distance and each leg of the journey.
  
 def display_results(path, total_distance):
-    """
-    Displays the shortest path results to the user.
- 
-    Parameters:
-        path           : list of city names on the route
-        total_distance : total distance in km
-    """
+
     print("\n  " + "=" * 50)
     print("   SHORTEST ROUTE FOUND")
     print("  " + "-" * 50)
@@ -173,8 +165,7 @@ def display_results(path, total_distance):
     print(f"  Distance : {total_distance:,.0f} km")
     print("  " + "-" * 50)
  
-    # Show leg by leg breakdown
-    # A "leg" is one direct flight between two cities
+   
     if len(path) > 2:
         print("  LEG BY LEG BREAKDOWN:")
         for i in range(len(path) - 1):
@@ -186,31 +177,28 @@ def display_results(path, total_distance):
     print("  " + "=" * 50)
  
 # ============================================================
-# STEP 7: MAIN PROGRAM — PUTTING IT ALL TOGETHER
+# STEP 7: MAIN PROGRAM — WE PUT IT ALL TOGETHER AND ALLOW USER TO SEARCH AS MANY TIMES AS THEY WANT
 # ============================================================
-# This is where everything connects.
-# We show the cities, take user input, run Dijkstra,
-# and display the results. The user can search again
-# as many times as they want.
+
  
 def main():
     print("\n" + "=" * 60)
-    print("   ✈  SMART CITY ROUTE OPTIMIZER")
+    print("    SMART CITY ROUTE OPTIMIZER")
     print("=" * 60)
     print("   Find the shortest flight route between any two cities")
     print("=" * 60)
  
-    # Keep running until user says no
+    
     while True:
  
-        # Show available cities
+        
         show_cities()
  
-        # Get start city from user
+
         print()
         start = get_city_input("  Enter START city (name or number): ")
  
-        # Get destination city from user
+        
         end = get_city_input("  Enter DESTINATION city (name or number): ")
  
         # Check they didn't pick the same city twice
@@ -218,24 +206,24 @@ def main():
             print(f"\n  ⚠ You are already in {cities[start]}! Pick a different destination.")
             continue
  
-        # Run Dijkstra's algorithm to find shortest path
+        
         print(f"\n  Searching for shortest route from "
               f"{cities[start]} to {cities[end]}...")
  
         total_distance, path = dijkstra(start, end)
  
-        # Check if a route was found
+        
         if total_distance == np.inf or not path:
             print(f"\n  ✗ No route found between {cities[start]} "
                   f"and {cities[end]}.")
             print("  These cities may not be connected in our network.")
         else:
-            # Display the results
+            
             display_results(path, total_distance)
             display_fuel_cost(total_distance)
             display_travel_time(total_distance)
  
-        # Ask if user wants to search again
+        
         print()
         again = input("  Search another route? (yes / no): ").strip().lower()
         if again not in ['yes', 'y']:
@@ -244,64 +232,27 @@ def main():
             break
  
 # ============================================================
-# STEP 8: FUEL COST ESTIMATOR (Probability - Week 8 & 9)
+# STEP 8: FUEL COST ESTIMATOR                              # Using normal distribution to estimante fuel cost
 # ============================================================
-# REAL WORLD PROBLEM:
-#   Fuel prices are never fixed — they vary daily due to oil prices, seasons, and demand. So instead of one fixed price we use PROBABILITY to give a realistic cost RANGE.
 
-# MATHEMATICAL CONCEPT — Normal Distribution:
-#   In real life, most values cluster around an average (mean) with fewer values far away. This is called a Normal Distribution — the famous "bell curve" shape.
-
-#   For fuel costs:
-#   - We calculate the MEAN cost based on distance
-#   - We calculate the STANDARD DEVIATION (how much it varies)
-#   - We then use these to give a 90% probability price range
-#
-# FORMULA USED:
-#   mean     = distance × cost_per_km
-#   std_dev  = mean × variation_rate
-#   low  estimate = mean - (1.645 × std_dev)  ← 5th percentile
-#   high estimate = mean + (1.645 × std_dev)  ← 95th percentile
-#
-#   1.645 is the Z-score for a 90% confidence interval
-#   from the Standard Normal Distribution table (Week 8)
-#
-# This means: "We are 90% confident the fuel cost will fall
-#              between the low and high estimate"
  
 def estimate_fuel_cost(distance_km):
-    """
-    Estimates the fuel cost using Normal Distribution.
- 
-    Parameters:
-        distance_km : total flight distance in kilometres
- 
-    Returns:
-        mean_cost : average expected cost in USD
-        low_cost  : lower bound (5th percentile)
-        high_cost : upper bound (95th percentile)
-    """
+   
  
     # ---- Constants ----
     COST_PER_KM   = 0.085   # Average fuel cost per km in USD
     VARIATION     = 0.12    # Fuel prices vary by ~12% (standard deviation)
     Z_SCORE_90    = 1.645   # Z-score for 90% confidence interval
-                            # From Normal Distribution table (Week 8)
+                           
  
-    # ---- Step 1: Calculate the MEAN (expected average cost) ----
-    # This is a simple linear relationship: cost = distance × rate
+   
     mean_cost = distance_km * COST_PER_KM
  
-    # ---- Step 2: Calculate STANDARD DEVIATION ----
-    # Standard deviation tells us how spread out the prices are
-    # A 12% variation means prices typically vary by 12% of the mean
+  
     std_dev = mean_cost * VARIATION
  
-    # ---- Step 3: Calculate the PROBABILITY RANGE ----
-    # Using the Normal Distribution formula:
-    # Lower bound = mean - (Z × std_dev) → 5th percentile
-    # Upper bound = mean + (Z × std_dev) → 95th percentile
-    # This gives us a 90% confidence interval
+    # THE PROBABILITY RANGE ----
+    
     low_cost  = mean_cost - (Z_SCORE_90 * std_dev)
     high_cost = mean_cost + (Z_SCORE_90 * std_dev)
  
@@ -309,15 +260,10 @@ def estimate_fuel_cost(distance_km):
  
  
 def display_fuel_cost(distance_km):
-    """
-    Displays the fuel cost estimate with probability explanation.
- 
-    Parameters:
-        distance_km : total flight distance in kilometres
-    """
+    
     mean_cost, low_cost, high_cost = estimate_fuel_cost(distance_km)
  
-    print("\n  FUEL COST ESTIMATE (Normal Distribution)")
+    print("\n  FUEL COST ESTIMATE")
     print("  " + "-" * 50)
     print(f"  Average expected cost : ${mean_cost:>8,.2f} USD")
     print(f"  90% confidence range  : ${low_cost:>7,.2f} - ${high_cost:,.2f} USD")
@@ -325,41 +271,13 @@ def display_fuel_cost(distance_km):
     print(f"  Price variation       : ±12% (std deviation)")
     print("  " + "-" * 50)
     print("   Interpretation:")
-    print(f"  There is a 90% probability that the fuel cost")
-    print(f"  for this {distance_km:,.0f} km journey will fall")
-    print(f"  between ${low_cost:,.2f} and ${high_cost:,.2f} USD.")
-    print("  (Based on Normal Distribution, Z-score = 1.645)")
+    print(f"  There is a 90% probability that the fuel cost for this {distance_km:,.0f} km journey will fall between ${low_cost:,.2f} and ${high_cost:,.2f} USD. Based on Normal Distribution, Z-score = 1.645")
     print("  " + "-" * 50)
 
 # ============================================================
-# STEP 9: TRAVEL TIME ESTIMATOR (Linear Regression)
+# STEP 9: TRAVEL TIME ESTIMATOR ( I used Linear Regression)
 # ============================================================
-# REAL WORLD PROBLEM:
-#   A passenger needs to know how long their journey will take.
-#   We use Linear Regression to predict travel time from distance.
-#
-# MATHEMATICAL CONCEPT — Linear Regression:
-#   Linear Regression finds the best straight line relationship
-#   between two variables. The formula is:
-#
-#       y = mx + c
-#
-#   Where:
-#     y = travel time (what we want to predict)
-#     x = distance in km (what we know)
-#     m = slope (how much time increases per km)
-#     c = intercept (base time e.g. boarding, taxiing)
-#
-#   We calculate m and c using the Linear Regression formula:
-#
-#       m = Σ((x - x_mean)(y - y_mean)) / Σ((x - x_mean)²)
-#       c = y_mean - m × x_mean
-#
-#   This finds the line that BEST fits our known flight data.
-#   NumPy vectors are used for all calculations.
 
-# Known flight data (distance km, time hours) — training data
-# These are real approximate flight times for reference
 FLIGHT_DATA = np.array([
     [344,   1.5],   # London  → Paris
     [878,   2.5],   # Paris   → Berlin
@@ -375,65 +293,41 @@ FLIGHT_DATA = np.array([
 ])
 
 def linear_regression(data):
-    """
-    Calculates slope (m) and intercept (c) for y = mx + c.
+    
+    
+    x = data[:, 0]  # First column  — distances, Second column — time
+    y = data[:, 1]  
 
-    Parameters:
-        data : NumPy array with columns [distance, time]
-
-    Returns:
-        m : slope (hours per km)
-        c : intercept (base hours)
-    """
-    # Split data into x (distance) and y (time) vectors
-    x = data[:, 0]  # First column  — distances
-    y = data[:, 1]  # Second column — times
-
-    # Calculate means using NumPy
+  
     x_mean = np.mean(x)
     y_mean = np.mean(y)
 
-    # Calculate slope m using Linear Regression formula
-    # m = Σ((x - x_mean)(y - y_mean)) / Σ((x - x_mean)²)
+   
     numerator   = np.sum((x - x_mean) * (y - y_mean))
     denominator = np.sum((x - x_mean) ** 2)
     m = numerator / denominator
 
-    # Calculate intercept c
-    # c = y_mean - m × x_mean
+    
     c = y_mean - m * x_mean
 
     return m, c
 
 def estimate_travel_time(distance_km):
-    """
-    Predicts travel time using Linear Regression y = mx + c.
-
-    Parameters:
-        distance_km : total flight distance in kilometres
-
-    Returns:
-        hours : predicted travel time in hours
-    """
+    
     m, c = linear_regression(FLIGHT_DATA)
 
-    # Apply the Linear Regression formula: y = mx + c
+    
     hours = m * distance_km + c
 
     return hours, m, c
 
 def display_travel_time(distance_km):
-    """
-    Displays the travel time prediction with explanation.
-
-    Parameters:
-        distance_km : total flight distance in kilometres
-    """
+    
     hours, m, c = estimate_travel_time(distance_km)
     full_hours  = int(hours)
     minutes     = int((hours - full_hours) * 60)
 
-    print("\n  TRAVEL TIME ESTIMATE (Linear Regression)")
+    print("\n  TRAVEL TIME ESTIMATE ")
     print("  " + "-" * 50)
     print(f"  Formula used    : y = mx + c")
     print(f"  Slope (m)       : {m:.6f} hours per km")
@@ -441,9 +335,8 @@ def display_travel_time(distance_km):
     print(f"  Calculation     : {m:.6f} x {distance_km:,.0f} + {c:.4f}")
     print(f"  Estimated time  : {full_hours}h {minutes}min")
     print("  " + "-" * 50)
-    print(f"  A {distance_km:,.0f} km journey is predicted to take")
-    print(f"  approximately {full_hours} hours and {minutes} minutes.")
-    print(f"  (Using Linear Regression trained on real flight data)")
+    print(f"  Using Linear Regression trained on real flight data,")
+    print(f"  A {distance_km:,.0f} km journey is predicted to take approximately {full_hours} hours and {minutes} minutes.")
     print("  " + "-" * 50)
  
 if __name__ == "__main__":
