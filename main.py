@@ -61,37 +61,28 @@ def show_cities():
 # ============================================================
  
 def dijkstra(start, end):
-    """
-    Finds the shortest path between two cities.
+
  
-    Parameters:
-        start : index number of the starting city
-        end   : index number of the destination city
+    n = len(cities)                            # Total number of cities (10)
  
-    Returns:
-        total_distance : shortest distance in km
-        path           : list of city names on the route
-    """
- 
-    n = len(cities)  # Total number of cities (10)
- 
-    # We start with infinity for all cities (distances unknown), Then set the start city distance to 0
-    dist = np.full(n, np.inf)  
+    
+    dist = np.full(n, np.inf)               # We start with infinity for all cities (distances unknown), Then set the start city distance to 0
     dist[start] = 0            
  
-    # visited tells us which cities we have finalised and False = not yet visited, True = shortest distance confirmed
+    
 
-    visited = np.zeros(n, dtype=bool) 
+    visited = np.zeros(n, dtype=bool)       # visited tells us which cities we have finalised and False = not yet visited, True = shortest distance confirmed
  
-    # previous stores which city we came from to reach each city. We use this at the end to trace back the full route
 
-    previous = np.full(n, -1, dtype=int)  
+
+    previous = np.full(n, -1, dtype=int)    # previous stores which city we came from to reach each city. We use this at the end to trace back the full route
  
     # ---- MAIN LOOP: runs once for each city ----
     for _ in range(n):       # We use NumPy to find unvistited city with the smallest distance and always pick the minimum
  
         unvisited_distances = np.where(visited, np.inf, dist)
-        u = np.argmin(unvisited_distances)  # Index of closest city
+
+        u = np.argmin(unvisited_distances)         # Index of closest city
  
         if dist[u] == np.inf:
             break
@@ -112,6 +103,7 @@ def dijkstra(start, end):
                     previous[v] = u  
  
     # ---- RECONSTRUCT THE ROUTE ----
+
     path = []
     current = end
     while current != -1:
@@ -279,23 +271,23 @@ def display_fuel_cost(distance_km):
 # ============================================================
 
 FLIGHT_DATA = np.array([
-    [344,   1.5],   # London  → Paris
-    [878,   2.5],   # Paris   → Berlin
-    [1105,  2.8],   # Paris   → Rome
-    [1184,  2.9],   # Berlin  → Rome
-    [2065,  4.5],   # Rome    → Cairo
-    [2092,  4.2],   # London  → Casablanca
-    [2900,  6.0],   # Casablanca → Lagos
-    [3200,  6.5],   # Paris   → Cairo
-    [3626,  7.5],   # Cairo   → Nairobi
-    [3900,  8.0],   # Nairobi → Johannesburg
-    [3982,  8.2],   # Lagos   → Nairobi
+    [344,   1.5],                      # London  → Paris
+    [878,   2.5],                      # Paris   → Berlin
+    [1105,  2.8],                      # Paris   → Rome
+    [1184,  2.9],                      # Berlin  → Rome
+    [2065,  4.5],                      # Rome    → Cairo
+    [2092,  4.2],                      # London  → Casablanca
+    [2900,  6.0],                      # Casablanca → Lagos
+    [3200,  6.5],                      # Paris   → Cairo
+    [3626,  7.5],                      # Cairo   → Nairobi
+    [3900,  8.0],                      # Nairobi → Johannesburg
+    [3982,  8.2],                      # Lagos   → Nairobi
 ])
 
 def linear_regression(data):
     
     
-    x = data[:, 0]  # First column  — distances, Second column — time
+    x = data[:, 0]   # First column  — distances, Second column — time
     y = data[:, 1]  
 
   
